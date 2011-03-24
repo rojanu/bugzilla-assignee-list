@@ -1,0 +1,93 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the AssigneeList Bugzilla Extension.
+  #
+  # The Initial Developer of the Original Code is Ali Ustek
+  # Portions created by the Initial Developer are Copyright (C) 2011 the
+  # Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s): Ali Ustek <aliustek@gmail.com>
+  #%]
+
+[%# INTERFACE:
+  # comp: Bugzilla::Component that we are listing the assignees for.
+  #%]
+
+[% title = BLOCK %]
+	Assignee list for "[% comp.name FILTER html %]" component of 
+                               "[% product.name FILTER html %]" product
+[% END %]
+[% PROCESS global/header.html.tmpl
+  title = title
+%]
+
+[% edit_contentlink = BLOCK %]page.cgi?id=assigneelist/list.html&amp;action=
+	edit&amp;assignee_id=%%id%%&amp;product=
+    [%- product.name FILTER uri %]&amp;component=
+    [%- comp.name FILTER uri %]
+[% END %]
+[% delete_contentlink = BLOCK %]page.cgi?id=assigneelist/list.html&amp;action=
+	del&amp;assignee_id=%%id%%&amp;product=
+    [%- product.name FILTER uri %]&amp;component=
+    [%- comp.name FILTER uri %]
+[% END %]
+
+[% columns = [
+     { 
+       name => "name"
+       heading => "Edit Assignee..."
+       contentlink => edit_contentlink
+     },
+     {
+       name => "group"
+       heading => "In group"
+     },
+     { 
+       name => "sortkey"
+       heading => "Sortkey"
+     },
+     {
+       name => "action"
+       heading => "Action"
+       content => "Delete"
+       contentlink => delete_contentlink
+     } ]
+%]
+
+[%# Overrides the group with right values %]
+[% overrides.group = {} %]
+
+[%# "component" is a reserved word in Template Toolkit. %]
+[% FOREACH my_assignee = comp.assignees %]
+  [% overrides.group.name.${my_assignee.name} = {
+       override_content => 1
+       content => my_assignee.group.name
+     }
+  %]
+[% END %]
+
+[% PROCESS admin/table.html.tmpl
+     columns = columns
+     data = comp.assignees
+     overrides = overrides
+%]
+<ul class="links">
+	<li><a href="page.cgi?id=assigneelist/list.html&amp;action=add&amp;product=
+        	      [%- product.name FILTER uri %]&amp;component=
+        		  [%- comp.name FILTER uri %]">Add Assignee</a>
+    </li>
+	<li><span class="separator">| </span>
+          <a href="page.cgi?id=assigneelist/group/list.html&amp;product=
+        	      [%- product.name FILTER uri %]&amp;component=
+        		  [%- comp.name FILTER uri %]">Edit Groups</a>
+    </li>
+</ul>
+[% PROCESS global/footer.html.tmpl %]
