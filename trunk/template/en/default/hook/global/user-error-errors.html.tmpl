@@ -1,0 +1,48 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the AssigneeList Bugzilla Extension.
+  #
+  # The Initial Developer of the Original Code is Ali Ustek
+  # Portions created by the Initial Developer are Copyright (C) 2011 the
+  # Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s): Ali Ustek <aliustek@gmail.com>
+  #%]
+
+[%# This is a list of messages to extend user errors. Please keep them in
+  # alphabetical order by error tag, and leave a blank line between errors.
+  #
+  # Note that you must explicitly filter every single template variable
+  # in this file; if you do not wish to change it, use the "none" filter.
+  #
+  # Note: be aware of uniqueness of error string parameter value, since
+  # nobody can guarantee the hook files processing order in the future.
+  #%]
+
+[% IF error == "label_too_long" %]
+    [% title = "Label Too Long" %]
+    The label <em>[% label FILTER html %]</em> must be less than 20 characters.
+    Please go back and shorten the label.
+
+[% ELSIF error == "label_required" %]
+    [% title = "Label Required" %]
+    A label is needed, please go back and add a label.
+
+[% ELSIF error == "invalid_sortkey" %]
+    [% title = "Invalid Sortkey" %]
+    The sortkey [% sortkey FILTER html %] that you have provided
+    is not a valid positive integer.
+
+[% ELSIF error == "assigneegroup_already_exists" %]
+    [% title = "Assignee Group Exists" %]
+    The assignee group [% name FILTER html %] already exists for the component.
+
+[% END %]
