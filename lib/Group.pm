@@ -27,7 +27,6 @@ use base qw(Bugzilla::Object);
 use Bugzilla::Error;
 use Bugzilla::Util;
 use Scalar::Util qw(blessed);
-use Carp qw(cluck);
 
 use Bugzilla::Extension::AssigneeList::Constants;
 
@@ -36,7 +35,6 @@ use Bugzilla::Extension::AssigneeList::Constants;
 ###############################
 
 use constant DB_TABLE => 'componentleadsgroup';
-# This is mostly for the editfields.cgi case where ->get_all is called.
 use constant LIST_ORDER => 'sortkey, name';
 
 use constant DB_COLUMNS => qw(
@@ -64,21 +62,19 @@ sub _check_name {
     my ($invocant, $name, undef, $params) = @_;
     my $component_id = blessed($invocant) ? 
     									$invocant->component_id : $params->{component_id};
-    									warn "CCC: ".$component_id;
 
 	$name = trim($name);
     $name || ThrowUserError('label_required');
-    	cluck "I am here ".$invocant;
-    	warn "INA: ".$invocant->name;
-    	warn "ICI: ". $invocant->component_id;
     if (length($name) > MAX_LABEL_LENGTH) {
         ThrowUserError('label_too_long', { label => $name });
     }
     
-    my $group = new Bugzilla::Extension::AssigneeList::Group(
-    		{name => $name, component_id  => $component_id });
+    my $group = new Bugzilla::Extension::AssigneeList::Group({
+                                         name => $name, 
+                                         component_id  => $component_id,
+                                    });
     if ($group && (!ref $invocant || $group->id != $invocant->id)) {
-    	warn "GID: ".$group->id;
+    	warn "GID: ".$group->id. " GCID: ".$group->component_id. " CID: ".$component_id;
         ThrowUserError('assigneegroup_already_exists', { name    => $group->name });
     }
 
