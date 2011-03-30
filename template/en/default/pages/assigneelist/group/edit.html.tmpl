@@ -18,11 +18,14 @@
   #%]
 
 [%# INTERFACE:
-  # comp: Bugzilla::Component that we are listing the assignees for.
+  # group: Bugzilla::Extension::AssigneeList::Group that we are editing.
+  # comp: Bugzilla::Component that we are listing the assignee groups for.
+  # product: object; Bugzilla::Product object representing the product to
+  #               which the above component belongs.
   #%]
 
 [% title = BLOCK %]
-	Editing assignee group list for "[% comp.name FILTER html %]" component of 
+	Editing assignee group for "[% comp.name FILTER html %]" component of 
                                "[% product.name FILTER html %]" product
 [% END %]
 [% PROCESS global/header.html.tmpl
@@ -32,9 +35,9 @@
 <form method="post" action="page.cgi?id=assigneelist/group/list.html">
   <table border="0" cellpadding="4" cellspacing="0">
   <tr>
-  	<th align="right"><label for="name">Name:</label></th>
+  	<th align="right"><label for="name_new">Name:</label></th>
     <td>
-          <input id="name" name="name" value="[% group.name FILTER html %]"
+          <input id="name_new" name="name_new" value="[% group.name FILTER html %]"
                size="[% constants.MAX_LABEL_LENGTH FILTER none %]"
                maxlength="[% constants.MAX_LABEL_LENGTH FILTER none %]">
      </td>
@@ -49,6 +52,7 @@
   </table>
   <input type="submit" id="edit" value="Update">
   <input type="hidden" name="action" value="update">
+  <input type="hidden" name="name" value="[% group.name FILTER html %]">
   <input type="hidden" name="component" value="[% comp.name FILTER html %]">
   <input type="hidden" name="product" value="[% product.name FILTER html %]">
   <input type="hidden" name="token" value="[% token FILTER html %]">

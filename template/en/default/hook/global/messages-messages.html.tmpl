@@ -31,4 +31,51 @@
     [% title = "Assignee Group Created" %]
     The assignee group <em>[% group.name FILTER html %]</em> has been created.
 
+[% ELSIF message_tag == "assignee_group_updated" %]
+    [% title = "Assignee Group Update" %]
+    [% IF changes.keys.size %]
+      Changes to the assignee group <em>[% group.name FILTER html %]</em> have been saved:
+      <ul>
+      [% IF changes.name.defined %]
+        <li>Name updated to '[% group.name FILTER html %]'</li>
+      [% END %]
+      [% IF changes.sortkey.defined %]
+        <li>Sortkey updated to '[% group.sortkey FILTER html %]'</li>
+      [% END %]
+      </ul>
+    [% ELSE %]
+      No changes made to <em>[% group.name FILTER html %]</em>.
+    [% END %]
+
+[% ELSIF message_tag == "assignee_group_deleted" %]
+    [% title = "Assignee Group Deleted" %]
+    The assignee group <em>[% group.name FILTER html %]</em> has been deleted.
+
+[% ELSIF message_tag == "assignee_created" %]
+    [% title = "Assignee Created" %]
+    The assignee <em>[% assignee.name FILTER html %]</em> has been created.
+
+[% ELSIF message_tag == "assignee_updated" %]
+    [% title = "Assignee Update" %]
+    [% IF changes.keys.size %]
+      Changes to the assignee <em>[% assignee.name FILTER html %]</em> have been saved:
+      <ul>
+      [% IF changes.group_id.defined %]
+        <li>Group updated to '[% assignee.group.name FILTER html %]'</li>
+      [% END %]
+      [% IF changes.name.defined %]
+        <li>Name updated to '[% assignee.name FILTER html %]'</li>
+      [% END %]
+      [% IF changes.sortkey.defined %]
+        <li>Sortkey updated to '[% assignee.sortkey FILTER html %]'</li>
+      [% END %]
+      </ul>
+    [% ELSE %]
+      No changes made to <em>[% assignee.name FILTER html %]</em>.
+    [% END %]
+
+[% ELSIF message_tag == "assignee_deleted" %]
+    [% title = "Assignee Deleted" %]
+    The assignee <em>[% assignee.name FILTER html %]</em> has been deleted.
+
 [% END %]

@@ -80,7 +80,12 @@
      overrides = overrides
 %]
 <ul class="links">
-	<li><a href="page.cgi?id=assigneelist/list.html&amp;action=add&amp;product=
+	<li><a href="editcomponents.cgi?action=edit&amp;product=
+        	      [%- product.name FILTER uri %]&amp;component=
+        		  [%- comp.name FILTER uri %]">Back to Component</a>
+    </li>
+	<li><span class="separator">| </span>
+	    <a href="page.cgi?id=assigneelist/list.html&amp;action=add&amp;product=
         	      [%- product.name FILTER uri %]&amp;component=
         		  [%- comp.name FILTER uri %]">Add Assignee</a>
     </li>
