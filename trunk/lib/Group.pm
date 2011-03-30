@@ -49,10 +49,77 @@ use constant UPDATE_COLUMNS => qw(
     sortkey
 );
 
+#use constant REQUIRED_FIELD_MAP => {
+#    component_id => 'component',
+#};
+
 use constant VALIDATORS => {
-    name         => \&_check_name,
-    sortkey	=> \&_check_sortkey,
+    name          => \&_check_name,
+    sortkey	   => \&_check_sortkey,
 };
+
+###############################
+
+sub new {
+    my ($class, $param) = @_;
+    my $dbh = Bugzilla->dbh;
+
+    my $component;
+    if (ref $param and !defined $param->{id}) {
+        $component = $param->{component};
+        my $name = $param->{name};
+        if (!defined $component) {
+            ThrowCodeError('bad_arg',
+                {argument => 'component',
+                 function => "${class}::new"});
+        }
+        if (!defined $name) {
+            ThrowCodeError('bad_arg',
+                {argument => 'name',
+                 function => "${class}::new"});
+        }
+
+        my $condition = 'component_id = ? AND name = ?';
+        my @values = ($component->id, $name);
+        $param = { condition => $condition, values => \@values };
+    }
+
+    unshift @_, $param;
+    my $group = $class->SUPER::new(@_);
+    # Add the component object as attribute only if the component exists.
+    $group->{component} = $component if ($group && $component);
+    return $group;
+}
+
+sub create {
+    my $class = shift;
+    my $dbh = Bugzilla->dbh;
+
+    $dbh->bz_start_transaction();
+
+    $class->check_required_create_fields(@_);
+    my $params = $class->run_create_validators(@_);
+    my $component = delete $params->{component};
+    $params->{component_id} = $component->id;
+
+    my $group = $class->insert_create_data($params);
+    $group->{component} = $component;
+
+    $dbh->bz_commit_transaction();
+    return $group;
+}
+
+sub remove_from_db_disabled {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+
+    $dbh->bz_start_transaction();
+
+    $dbh->do('DELETE FROM componentleads WHERE group_id = ?',
+             undef, $self->id);
+
+    $dbh->bz_commit_transaction();
+}
 
 ################################
 # Validators
@@ -60,8 +127,8 @@ use constant VALIDATORS => {
 
 sub _check_name {
     my ($invocant, $name, undef, $params) = @_;
-    my $component_id = blessed($invocant) ? 
-    									$invocant->component_id : $params->{component_id};
+    my $component = blessed($invocant) ? 
+    									$invocant->component : $params->{component};
 
 	$name = trim($name);
     $name || ThrowUserError('label_required');
@@ -71,11 +138,13 @@ sub _check_name {
     
     my $group = new Bugzilla::Extension::AssigneeList::Group({
                                          name => $name, 
-                                         component_id  => $component_id,
+                                         component  => $component,
                                     });
     if ($group && (!ref $invocant || $group->id != $invocant->id)) {
-    	warn "GID: ".$group->id. " GCID: ".$group->component_id. " CID: ".$component_id;
-        ThrowUserError('assigneegroup_already_exists', { name    => $group->name });
+        ThrowUserError('assigneegroup_already_exists', {
+        							name    => $group->name,
+                                    comp  => $component,
+                                });
     }
 
     return $name;
@@ -92,19 +161,40 @@ sub _check_sortkey {
 }
 
 ################################
-# Methods
-################################
-
-sub set_name { $_[0]->set('name', $_[1]); }
-sub set_sortkey { $_[0]->set('sortkey', $_[1]); }
-
-################################
 # Accessors
 ################################
 
 sub component_id { return $_[0]->{'component_id'}; }
 sub name                { return $_[0]->{'name'}; }
 sub sortkey            { return $_[0]->{'sortkey'}; }
+
+sub component {
+    my $self = shift;
+    if (!defined $self->{'component'}) {
+        require Bugzilla::Component;
+        $self->{'component'} = new Bugzilla::Component($self->component_id);
+    }
+    return $self->{'component'};
+}
+
+################################
+# Methods
+################################
+
+sub set_name { $_[0]->set('name', $_[1]); }
+sub set_sortkey { $_[0]->set('sortkey', $_[1]); }
+
+sub assignee_count {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+
+    if (!defined $self->{'assignee_count'}) {
+        $self->{'assignee_count'} = $dbh->selectrow_array(q{
+            SELECT COUNT(*) FROM componentleads
+            WHERE group_id = ?}, undef, $self->id) || 0;
+    }
+    return $self->{'assignee_count'};
+}
 
 ###############################
 

@@ -43,6 +43,8 @@
 
 [% ELSIF error == "assigneegroup_already_exists" %]
     [% title = "Assignee Group Exists" %]
-    The assignee group [% name FILTER html %] already exists for the component.
+    The assignee group [% name FILTER html %] already exists
+    for [% comp.product.name FILTER html %] product 
+    [% comp.name FILTER html %] component.
 
 [% END %]

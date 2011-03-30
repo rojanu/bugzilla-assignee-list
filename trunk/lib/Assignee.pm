@@ -18,25 +18,27 @@
 #
 # Contributor(s):
 #   Ali Ustek <AliUstek@gmail.com>
-
-package Bugzilla::Extension::AssigneeList::Assignee;
 use strict;
 
-use Bugzilla::Extension::AssigneeList::Constants;
+package Bugzilla::Extension::AssigneeList::Assignee;
 
 use base qw(Bugzilla::Object);
+
+use Bugzilla::Error;
+use Bugzilla::Util;
+use Scalar::Util qw(blessed);
+
+use Bugzilla::Extension::AssigneeList::Constants;
 
 ###############################
 ####    Initialization     ####
 ###############################
 
 use constant DB_TABLE => 'componentleads';
-# This is mostly for the editfields.cgi case where ->get_all is called.
 use constant LIST_ORDER => ' group_id,sortkey';
 
 use constant DB_COLUMNS => qw(
     id
-    component_id
     user_id
     group_id
     name
@@ -44,14 +46,81 @@ use constant DB_COLUMNS => qw(
 );
 
 use constant UPDATE_COLUMNS => qw(
+    group_id
     name
     sortkey
 );
 
 use constant VALIDATORS => {
-    name         => \&_check_name,
-    sortkey	=> \&_check_sortkey,
+    group     => \&_check_group,
+    name     => \&_check_name,
+    sortkey   => \&_check_sortkey,
+    user        => \&_check_user,
 };
+
+###############################
+
+sub new {
+    my ($class, $param) = @_;
+    my $dbh = Bugzilla->dbh;
+
+    my $group;
+    my $user;
+    if (ref $param and !defined $param->{id}) {
+        $group = $param->{group};
+        $user = $param->{user};
+        my $name = $param->{name};
+        if (!defined $group) {
+            ThrowCodeError('bad_arg',
+                {argument => 'group',
+                 function => "${class}::new"});
+        }
+        if (!defined $user) {
+            ThrowCodeError('bad_arg',
+                {argument => 'user',
+                 function => "${class}::new"});
+        }
+        if (!defined $name) {
+            ThrowCodeError('bad_arg',
+                {argument => 'name',
+                 function => "${class}::new"});
+        }
+
+        my $condition = 'group_id = ? AND user_id =? AND name = ?';
+        my @values = ($group->id, $user->id, $name);
+        $param = { condition => $condition, values => \@values };
+    }
+
+    unshift @_, $param;
+    my $assignee = $class->SUPER::new(@_);
+    # Add the group object as attribute only if the group exists.
+    $assignee->{group} = $group if ($assignee && $group);
+    # Add the user object as attribute only if the user exists.
+    $assignee->{user} = $user if ($assignee && $user);
+    return $assignee;
+}
+
+sub create {
+    my $class = shift;
+    my $dbh = Bugzilla->dbh;
+
+    $dbh->bz_start_transaction();
+
+    $class->check_required_create_fields(@_);
+    my $params = $class->run_create_validators(@_);
+    my $group = delete $params->{group};
+    $params->{group_id} = $group->id;
+
+    my $user = delete $params->{user};
+    $params->{user_id} = $user->id;
+
+    my $assignee = $class->insert_create_data($params);
+    $assignee->{group} = $group;
+    $assignee->{user} = $user;
+
+    $dbh->bz_commit_transaction();
+    return $assignee;
+}
 
 ################################
 # Validators
@@ -81,6 +150,22 @@ sub _check_sortkey {
     return $sortkey;
 }
 
+sub _check_group {
+    my ($invocant, $group) = @_;
+    $group || ThrowCodeError('param_required', 
+                    { function => "$invocant->create", param => 'group' });
+	require Bugzilla::Extension::AssigneeList::Group;
+    return new Bugzilla::Extension::AssigneeList::Group($group->id);
+}
+
+sub _check_user {
+    my ($invocant, $user) = @_;
+    $user || ThrowCodeError('param_required', 
+                    { function => "$invocant->create", param => 'user' });
+	require Bugzilla::User;
+    return new Bugzilla::User($user->id);
+}
+
 ################################
 # Methods
 ################################
@@ -88,11 +173,16 @@ sub _check_sortkey {
 sub set_name { $_[0]->set('name', $_[1]); }
 sub set_sortkey { $_[0]->set('sortkey', $_[1]); }
 
+sub set_group {
+    my ($self, $group) = @_;
+	$self->set('group_id', $group->id);
+    $self->{'group'} = $group;
+}
+
 ################################
 # Accessors
 ################################
 
-sub component_id { return $_[0]->{'component_id'}; }
 sub user_id            { return $_[0]->{'user_id'}; }
 sub group_id          { return $_[0]->{'group_id'}; }
 sub name                { return $_[0]->{'name'}; }
@@ -105,6 +195,15 @@ sub group {
         $self->{'group'} = new Bugzilla::Extension::AssigneeList::Group($self->group_id);
     }
     return $self->{'group'};
+}
+
+sub user {
+    my $self = shift;
+    if (!defined $self->{'user'}) {
+        require Bugzilla::User;
+        $self->{'user'} = new Bugzilla::User($self->user_id);
+    }
+    return $self->{'user'};
 }
 
 ###############################

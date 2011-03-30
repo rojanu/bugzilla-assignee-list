@@ -30,12 +30,12 @@
 %]
 
 [% edit_contentlink = BLOCK %]page.cgi?id=assigneelist/group/list.html&amp;action=
-	edit&amp;group_id=%%id%%&amp;product=
+	edit&amp;name=%%name%%&amp;product=
     [%- product.name FILTER uri %]&amp;component=
     [%- comp.name FILTER uri %]
 [% END %]
 [% delete_contentlink = BLOCK %]page.cgi?id=assigneelist/group/list.html&amp;action=
-	del&amp;group_id=%%id%%&amp;product=
+	del&amp;name=%%name%%&amp;product=
     [%- product.name FILTER uri %]&amp;component=
     [%- comp.name FILTER uri %]
 [% END %]
@@ -86,7 +86,12 @@
      overrides = overrides
 %]
 <ul class="links">
-	<li><a href="page.cgi?id=assigneelist/group/list.html&amp;action=add&amp;product=
+	<li><a href="page.cgi?id=assigneelist/list.html&amp;product=
+        	      [%- product.name FILTER uri %]&amp;component=
+        		  [%- comp.name FILTER uri %]">Back to Assignee list</a>
+    </li>
+	<li><span class="separator">| </span>
+	    <a href="page.cgi?id=assigneelist/group/list.html&amp;action=add&amp;product=
         	      [%- product.name FILTER uri %]&amp;component=
         		  [%- comp.name FILTER uri %]">Add Assignee Group</a>
     </li>
