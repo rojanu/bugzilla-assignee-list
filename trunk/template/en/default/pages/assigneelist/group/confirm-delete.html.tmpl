@@ -1,0 +1,99 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the AssigneeList Bugzilla Extension.
+  #
+  # The Initial Developer of the Original Code is Ali Ustek
+  # Portions created by the Initial Developer are Copyright (C) 2011 the
+  # Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s): Ali Ustek <aliustek@gmail.com>
+  #%]
+
+[%# INTERFACE:
+  # group: Bugzilla::Extension::AssigneeList::Group that we are deleting.
+  # comp: Bugzilla::Component that we are deleting the assignee group for.
+  # product: object; Bugzilla::Product object representing the product to
+  #               which the above component belongs.
+  #%]
+
+[% title = BLOCK %]
+	Delete assignee group for "[% comp.name FILTER html %]" component of 
+                               "[% product.name FILTER html %]" product
+[% END %]
+[% PROCESS global/header.html.tmpl
+  title = title
+%]
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr bgcolor="#6666FF">
+  <th valign="top" align="left">Field</th>
+  <th valign="top" align="left">Value</th>
+</tr>
+<tr>
+  <td valign="top">Group:</td>
+  <td valign="top">[% group.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Component:</td>
+  <td valign="top">[% comp.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Component of Product:</td>
+  <td valign="top">[% product.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Assignees:</td>
+  <td valign="top">
+[% IF group.assignee_count %]
+	[% group.assignee_count %]
+[% ELSE %]
+  None
+[% END %]
+  </td>
+</tr>
+</table>
+
+<h2>Confirmation</h2>
+  
+[% IF group.assignee_count %]
+
+  <p>
+    Sorry, there
+
+    [% IF group.assignee_count > 1 %] 
+        are [% group.assignee_count %] assignees
+    [% ELSE %]
+        is [% group.assignee_count %] assignee
+    [% END %]
+    outstanding for this group.  Please go back and reassign 
+
+    [% IF group.assignee_count> 1 %]
+       those assignees
+    [% ELSE %]
+       that assignee
+    [% END %]
+
+    to another assignee group.  When you delete this assignee group,
+    <b><blink>ALL</blink></b> stored assigness will be deleted too.
+[% END %]
+
+<p>Do you really want to delete this assignee group?</p>
+  
+<form method="post" action="page.cgi?id=assigneelist/group/list.html">
+  <input type="submit" id="delete" value="Yes, delete">
+  <input type="hidden" name="action" value="delete">
+  <input type="hidden" name="name" value="[% group.name FILTER html %]">
+  <input type="hidden" name="product" value="[% product.name FILTER html %]">
+  <input type="hidden" name="component" value="[% comp.name FILTER html %]">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+</form>
+
+[% PROCESS global/footer.html.tmpl %] 

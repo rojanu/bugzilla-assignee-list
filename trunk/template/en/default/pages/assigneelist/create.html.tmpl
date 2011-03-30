@@ -1,0 +1,80 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the AssigneeList Bugzilla Extension.
+  #
+  # The Initial Developer of the Original Code is Ali Ustek
+  # Portions created by the Initial Developer are Copyright (C) 2011 the
+  # Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s): Ali Ustek <aliustek@gmail.com>
+  #%]
+
+[%# INTERFACE:
+  # comp: Bugzilla::Component that we are listing the assignees for.
+  #%]
+
+[% title = BLOCK %]
+	Adding new assignee to "[% comp.name FILTER html %]" component of 
+                               "[% product.name FILTER html %]" product
+[% END %]
+[% PROCESS global/header.html.tmpl
+  title = title
+  javascript_urls = [ "extensions/AssigneeList/web/Util.js" ]
+%]
+
+<form method="post" action="page.cgi?id=assigneelist/list.html">
+  <table border="0" cellpadding="4" cellspacing="0">
+  <tr>
+  	<th align="right"><label for="user_login">User:</label></th>
+    <td>
+        [% INCLUDE global/userselect.html.tmpl
+                name     => "user_login"
+                id       => "user_login"
+                value    => ""
+                size     => 64
+                custom_userlist => product.user_list
+                multiple => 0
+                emptyok  => 0
+                onchange => "setAssigneeLabel();"
+            %]
+     </td>
+  </tr>
+  <tr>
+  	<th align="right"><label for="name">Name:</label></th>
+    <td>
+          <input id="name" name="name"
+               size="[% constants.MAX_LABEL_LENGTH FILTER none %]"
+               maxlength="[% constants.MAX_LABEL_LENGTH FILTER none %]">
+     </td>
+  </tr>
+  <tr>
+  	<th align="right"><label for="group">Group:</label></th>
+    <td>
+    	<select id="group" name="group">
+          [% FOREACH group = comp.assignee_groups %]
+                 <option value="[% group.id %]">[% group.name %]</option>
+          [% END %]
+        </select>
+     </td>
+  </tr>
+    <tr>
+      <th align="right"><label for="sortkey">Sortkey:</label></th>
+      <td><input id="sortkey" name="sortkey" size="6" maxlength="6"></td>
+    </tr>
+  </table>
+  <input type="submit" id="create" value="Add">
+  <input type="hidden" name="action" value="new">
+  <input type="hidden" name="component" value="[% comp.name FILTER html %]">
+  <input type="hidden" name="product" value="[% product.name FILTER html %]">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+</form>
+
+[% PROCESS global/footer.html.tmpl %]

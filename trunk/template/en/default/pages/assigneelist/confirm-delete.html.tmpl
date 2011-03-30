@@ -1,0 +1,71 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the AssigneeList Bugzilla Extension.
+  #
+  # The Initial Developer of the Original Code is Ali Ustek
+  # Portions created by the Initial Developer are Copyright (C) 2011 the
+  # Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s): Ali Ustek <aliustek@gmail.com>
+  #%]
+
+[%# INTERFACE:
+  # assignee: Bugzilla::Extension::AssigneeList::Assignee that we are deleting.
+  # comp: Bugzilla::Component that we are deleting the assignee group for.
+  # product: object; Bugzilla::Product object representing the product to
+  #               which the above component belongs.
+  #%]
+
+[% title = BLOCK %]
+	Delete assignee for "[% comp.name FILTER html %]" component of 
+                               "[% product.name FILTER html %]" product
+[% END %]
+[% PROCESS global/header.html.tmpl
+  title = title
+%]
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr bgcolor="#6666FF">
+  <th valign="top" align="left">Field</th>
+  <th valign="top" align="left">Value</th>
+</tr>
+<tr>
+  <td valign="top">Assignee:</td>
+  <td valign="top">[% assignee.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Group:</td>
+  <td valign="top">[% assignee.group.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Component:</td>
+  <td valign="top">[% comp.name FILTER html %]</td>
+</tr>
+<tr>
+  <td valign="top">Component of Product:</td>
+  <td valign="top">[% product.name FILTER html %]</td>
+</tr>
+</table>
+
+<h2>Confirmation</h2>
+
+<p>Do you really want to delete this assignee?</p>
+  
+<form method="post" action="page.cgi?id=assigneelist/list.html">
+  <input type="submit" id="delete" value="Yes, delete">
+  <input type="hidden" name="action" value="delete">
+  <input type="hidden" name="assignee_id" value="[% assignee.id FILTER html %]">
+  <input type="hidden" name="product" value="[% product.name FILTER html %]">
+  <input type="hidden" name="component" value="[% comp.name FILTER html %]">
+  <input type="hidden" name="token" value="[% token FILTER html %]">
+</form>
+
+[% PROCESS global/footer.html.tmpl %] 
