@@ -1,0 +1,122 @@
+=== modified file 'Bugzilla/Constants.pm'
+--- Bugzilla/Constants.pm	2011-03-14 07:24:45 +0000
++++ Bugzilla/Constants.pm	2011-03-16 14:49:13 +0000
+@@ -277,7 +277,7 @@
+ 
+ # The default list of columns for buglist.cgi
+ use constant DEFAULT_COLUMN_LIST => (
+-    "product", "component", "assigned_to",
++    "product", "component", "assigned_to", "cf_bug_type",
+     "bug_status", "resolution", "short_desc", "changeddate"
+ );
+ 
+
+=== modified file 'Bugzilla/Product.pm'
+--- Bugzilla/Product.pm	2010-10-20 00:27:59 +0000
++++ Bugzilla/Product.pm	2011-03-29 11:25:53 +0000
+@@ -449,7 +449,7 @@
+     $dbh->do('INSERT INTO group_control_map
+               (group_id, product_id, membercontrol, othercontrol)
+               VALUES (?, ?, ?, ?)',
+-              undef, ($group->id, $self->id, CONTROLMAPDEFAULT, CONTROLMAPNA));
++              undef, ($group->id, $self->id, CONTROLMAPMANDATORY, CONTROLMAPMANDATORY));
+ }
+ 
+ sub _create_series {
+
+=== modified file 'editusers.cgi'
+--- editusers.cgi	2010-05-20 15:38:16 +0000
++++ editusers.cgi	2011-03-16 14:47:09 +0000
+@@ -42,6 +42,7 @@
+ my $dbh       = Bugzilla->dbh;
+ my $userid    = $user->id;
+ my $editusers = $user->in_group('editusers');
++my $userisadmin = $user->in_group('admin');
+ local our $vars     = {};
+ 
+ # Reject access if there is no sense in continuing.
+@@ -62,6 +63,7 @@
+ 
+ # Prefill template vars with data used in all or nearly all templates
+ $vars->{'editusers'} = $editusers;
++$vars->{'userisadmin'} = $userisadmin;
+ mirrorListSelectionValues();
+ 
+ ###########################################################################
+
+=== modified file 'template/en/default/admin/users/edit.html.tmpl'
+--- template/en/default/admin/users/edit.html.tmpl	2007-10-23 02:41:58 +0000
++++ template/en/default/admin/users/edit.html.tmpl	2011-03-16 14:47:09 +0000
+@@ -71,7 +71,8 @@
+                   [% %]<input type="checkbox"
+                               name="bless_[% group.id %]"
+                               value="1"
+-                              [% ' checked="checked"' IF perms.directbless %] />
++                              [% ' checked="checked"' IF perms.directbless %]
++                              [% ' disabled="disabled"' IF !userisadmin %] />
+                   [% ']' IF perms.indirectbless %]</td>
+               [% END %]
+               <td class="checkbox">
+@@ -81,7 +82,8 @@
+                            id="group_[% group.id %]"
+                            name="group_[% group.id %]"
+                            value="1"
+-                           [% ' checked="checked"' IF perms.directmember %] />
++                           [% ' checked="checked"' IF perms.directmember %]
++                           [% ' disabled="disabled"' IF !userisadmin && (group.id <= 13 && group.id != 8) %] />
+                 [% '*' IF perms.regexpmember %]
+                 [% ']' IF perms.derivedmember %]</td>
+               <td class="groupname">
+
+=== modified file 'template/en/default/bug/create/create.html.tmpl'
+--- template/en/default/bug/create/create.html.tmpl	2011-02-01 16:00:46 +0000
++++ template/en/default/bug/create/create.html.tmpl	2011-04-01 10:55:05 +0000
+@@ -40,7 +40,7 @@
+ 
+ <script type="text/javascript">
+ <!--
+-
++[%+ INCLUDE "assigneelist/bugcreate.js.tmpl" %]
+ var initialowners = new Array([% product.components.size %]);
+ var last_initialowner;
+ var initialccs = new Array([% product.components.size %]);
+@@ -100,6 +100,7 @@
+     if (index != -1) {
+         var owner = initialowners[index];
+         var component = components[index];
++        populateAssignees(index);
+         if (assigned_to == last_initialowner
+             || assigned_to == owner
+             || assigned_to == '') {
+@@ -393,7 +394,7 @@
+       field = bug_fields.assigned_to editable = 1
+     %]
+     <td colspan="2">
+-      [% INCLUDE global/userselect.html.tmpl
++      [% INCLUDE assigneelist/userselect.html.tmpl
+          id => "assigned_to"
+          name => "assigned_to"
+          value => assigned_to
+
+=== modified file 'template/en/default/bug/edit.html.tmpl'
+--- template/en/default/bug/edit.html.tmpl	2011-01-24 18:29:39 +0000
++++ template/en/default/bug/edit.html.tmpl	2011-04-01 11:50:29 +0000
+@@ -32,7 +32,7 @@
+ 
+   <script type="text/javascript">
+   <!--
+-  
++  [%+ INCLUDE "assigneelist/bugedit.js.tmpl" %]
+   /* Outputs a link to call replyToComment(); used to reduce HTML output */
+   function addReplyLink(id, real_id) {
+       /* XXX this should really be updated to use the DOM Core's
+@@ -473,7 +473,7 @@
+             </span>
+           </div>
+           <div id="bz_assignee_input">
+-            [% INCLUDE global/userselect.html.tmpl
++            [% INCLUDE assigneelist/userselect.html.tmpl
+                  id => "assigned_to"
+                  name => "assigned_to"
+                  value => bug.assigned_to.login
+

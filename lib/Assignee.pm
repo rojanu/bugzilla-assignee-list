@@ -130,11 +130,11 @@ sub _check_name {
     my ($class, $value) = @_;
 
     if (!$value) {
-        ThrowUserError('label_required');
+        ThrowUserError('assignee_label_required');
     }
 
     if (length($value) > MAX_LABEL_LENGTH) {
-        ThrowUserError('label_too_long', { label => $value });
+        ThrowUserError('assignee_label_too_long', { label => $value });
     }
 
     return $value;
@@ -146,7 +146,7 @@ sub _check_sortkey {
     $sortkey ||= 0;
     
     detaint_natural($sortkey) 
-    || ThrowUserError('invalid_sortkey', { sortkey => $sortkey });
+    || ThrowUserError('assignee_sortkey_invalid', { sortkey => $sortkey });
     return $sortkey;
 }
 

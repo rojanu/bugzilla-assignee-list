@@ -1,0 +1,66 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the AssigneeList Bugzilla Extension.
+  #
+  # The Initial Developer of the Original Code is Ali Ustek
+  # Portions created by the Initial Developer are Copyright (C) 2011 the
+  # Initial Developer. All Rights Reserved.
+  #
+  # Contributor(s): Ali Ustek <aliustek@gmail.com>
+  #%]
+
+var assigneeList = new Array([% components.size %]);
+[% c_count = 0 %]
+
+[%- FOREACH c = components %]
+	assigneeList[[% c_count %]] = new Array([% c.assignee_groups.size %]);
+
+	[% g_count = 0 %]
+	[%- FOREACH g = c.assignee_groups %]
+		[% js_group = 'G' _ c.id _ '' _ g.id %]
+		var [% js_group FILTER js %] = document.createElement("optgroup");
+		[% IF g.name == 'Default' %]
+    		//var selectAssignee = document.createElement("option");
+    		//selectAssignee.value = "";
+    		//selectAssignee.appendChild(document.createTextNode("Select Assignee"));
+			//[% js_group %].appendChild(selectAssignee);
+		[% ELSE %]
+			[% js_group FILTER js %].label = "[% g.name FILTER js %]";
+		[% END %]
+
+		[%- FOREACH assignee = g.assignees %]
+			[% js_assignee = 'A' _ c.id _ '' _ g.id _ ''_ assignee.id %]
+    		var [% js_assignee FILTER js %] = document.createElement("option");
+    		[% js_assignee FILTER js %].value = "[% assignee.user.login FILTER js %]";
+    		[% js_assignee FILTER js %].appendChild(
+    									document.createTextNode("[% assignee.name FILTER js %]"));
+    		[% js_group %].appendChild([% js_assignee FILTER js %]);
+    	[%- END %]
+
+    	assigneeList[[% c_count %]][[% g_count %]]  = [% js_group FILTER js %];
+	    [% g_count = g_count + 1 %]
+	[%- END %]
+    [% c_count = c_count + 1 %]
+[%- END %]
+
+function populateAssignees(index) {
+	var assigneeMenu = document.getElementById("assigned_to");
+
+	while (assigneeMenu.hasChildNodes()) {
+		assigneeMenu.removeChild(assigneeMenu.firstChild);
+	}
+
+	for ( i=0; i<assigneeList[index].length; i++ ){
+		if (assigneeList[index][i].hasChildNodes()) {
+			assigneeMenu.appendChild(assigneeList[index][i]);
+		}
+	}
+}
