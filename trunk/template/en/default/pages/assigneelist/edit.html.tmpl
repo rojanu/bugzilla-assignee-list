@@ -35,6 +35,12 @@
 <form method="post" action="page.cgi?id=assigneelist/list.html">
   <table border="0" cellpadding="4" cellspacing="0">
   <tr>
+  	<th align="right"><label for="user_login">User:</label></th>
+    <td>
+        [% assignee.user.identity FILTER html %]
+     </td>
+  </tr>
+  <tr>
   	<th align="right"><label for="name_new">Name:</label></th>
     <td>
           <input id="name_new" name="name_new" value="[% assignee.name FILTER html %]"

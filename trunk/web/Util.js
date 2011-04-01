@@ -23,6 +23,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 function setAssigneeLabel () {
-  var mail = document.getElementById('assignee');
+  var mail = document.getElementById('user_login');
   document.getElementById('name').value = mail.options[mail.selectedIndex].text;
 }

@@ -131,9 +131,9 @@ sub _check_name {
     									$invocant->component : $params->{component};
 
 	$name = trim($name);
-    $name || ThrowUserError('label_required');
+    $name || ThrowUserError('assigneegroup_label_required');
     if (length($name) > MAX_LABEL_LENGTH) {
-        ThrowUserError('label_too_long', { label => $name });
+        ThrowUserError('assigneegroup_label_too_long', { label => $name });
     }
     
     my $group = new Bugzilla::Extension::AssigneeList::Group({
@@ -156,7 +156,7 @@ sub _check_sortkey {
     $sortkey ||= 0;
     
     detaint_natural($sortkey) 
-    || ThrowUserError('invalid_sortkey', { sortkey => $sortkey });
+    || ThrowUserError('assigneegroup_sortkey_invalid', { sortkey => $sortkey });
     return $sortkey;
 }
 
@@ -194,6 +194,25 @@ sub assignee_count {
             WHERE group_id = ?}, undef, $self->id) || 0;
     }
     return $self->{'assignee_count'};
+}
+
+sub assignees {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+
+    if (!defined $self->{assignees}) {
+        my $ids = $dbh->selectcol_arrayref(q{
+            SELECT id FROM componentleads AS L
+            LEFT JOIN profiles AS P ON P.userid = L.user_id
+            WHERE 
+            	L.group_id = ? AND
+            	P.disabledtext = ''
+            ORDER BY L.sortkey}, undef, $self->id);
+
+        require Bugzilla::Extension::AssigneeList::Assignee;
+        $self->{assignees} = Bugzilla::Extension::AssigneeList::Assignee->new_from_list($ids);
+    }
+    return $self->{assignees};
 }
 
 ###############################

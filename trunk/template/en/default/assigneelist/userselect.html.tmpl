@@ -1,0 +1,87 @@
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the Bugzilla Bug Tracking System.
+  #
+  # Contributor(s): Byron Jones <bugzilla@glob.com.au>
+  #                 Frédéric Buclin <LpSolit@gmail.com>
+  #                 Guy Pyrzak <guy.pyrzak@gmail.com>
+  #                 Reed Loden <reed@reedloden.com>
+  #%]
+
+[%# INTERFACE:
+  # name: mandatory; field name
+  # id: optional; field id
+  # value: optional; default field value/selection
+  # classes: optional; an array of classes to be added
+  # onchange: optional; onchange attribute value
+  # disabled: optional; if true, the field is disabled
+  # accesskey: optional, input only; accesskey attribute value
+  # size: optional, input only; size attribute value
+  # emptyok: optional, select only; if true, prepend menu option for "" to start of select
+  # hyphenok: optional, select only; if true, prepend menu option for "-" to start of select
+  # multiple: optional, do multiselect box, value is size (height) of box
+  # custom_userlist: optional, specify a limited list of users to use
+  # title: optional, extra information to display as a tooltip
+  #%]
+
+<select name="[% name FILTER html %]"
+  [% IF id %] id="[% id FILTER html %]" [% END %]
+  [% IF classes %] class="[% classes.join(' ') FILTER html %]" [% END %]
+  [% IF onchange %] onchange="[% onchange FILTER html %]" [% END %]
+  [% IF disabled %] disabled="[% disabled FILTER html %]" [% END %]
+  [% IF accesskey %] accesskey="[% accesskey FILTER html %]" [% END %]
+  [% IF multiple %] multiple="multiple" size="[% multiple FILTER html %]" [% END %]
+  [% IF title %] title="[% title FILTER html %]" [% END %]
+>
+  [% IF emptyok %]
+    <option value=""></option>
+  [% END %]
+  [% IF hyphenok %]
+    <option value="-">-</option>
+  [% END %]
+
+  [% SET selected = {} %]
+  [% IF value.defined %]
+    [% FOREACH selected_value IN value.split(', ') %]
+      [% SET selected.$selected_value = 1 %]
+    [% END %]
+  [% END %]
+
+    [% IF custom_userlist %]
+        [% FOREACH tmpuser = custom_userlist %]
+            [% IF tmpuser.visible OR selected.${tmpuser.login} == 1 %]
+                <option value="[% tmpuser.login FILTER html %]"
+                    [% IF selected.${tmpuser.login} == 1 %]
+                        selected="selected"
+                        [%# A user account appears only once. Remove it from the list, so that
+                            # we know if there are some selected accounts which have not been listed. %]
+                        [% selected.delete(tmpuser.login) %]
+                    [% END %]
+                >[% tmpuser.identity FILTER html %]</option>
+            [% END %]
+        [% END %]
+    [% ELSE %]
+        [%- FOREACH c = bug.choices.component %]
+            [% IF c.name == bug.component %]
+                [%- FOREACH g = c.assignee_groups %]
+                <optgroup [% ' label="' _ g.name _ '"' UNLESS g.name == 'Default' %]>
+                    [%- FOREACH assignee = g.assignees %]
+                        <option value = "[% assignee.user.login FILTER html %]"
+                            [% ' selected="selected"' IF value ==assignee.user.login %]>
+                            [% assignee.name FILTER html %]
+                        </option>
+                    [%- END %]
+                </optgroup>
+                [%- END %]
+            [%- END %]
+        [%- END %]
+    [%- END %]
+</select>

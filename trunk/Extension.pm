@@ -91,6 +91,60 @@ sub db_schema_abstract_schema {
 }
 
 #########
+# Objects #
+#########
+
+sub object_end_of_create {
+    my ($self, $args) = @_;
+    my $object = $args->{'object'};
+
+    if ($object->isa('Bugzilla::Component')) {
+        my $group = Bugzilla::Extension::AssigneeList::Group->create(
+        							{name => 'Default',component => $object});
+
+  		my $owner = new Bugzilla::User($object->{'initialowner'});
+		Bugzilla::Extension::AssigneeList::Assignee->create({
+                                      name => $owner->login, 
+                                    sortkey => 0,
+                                         user => $owner,
+                                       group => $group,
+                                 });
+    }
+}
+
+sub object_before_set {
+    my ($self, $args) = @_;
+    
+    my ($object, $field, $value) = @$args{qw(object field value)};
+
+    if ($object->isa('Bugzilla::Component')) {
+    	if ($field eq 'initialowner') {
+    		my $oldowner = new Bugzilla::User($object->{'initialowner'});
+    		my $newowner = new Bugzilla::User({name => $value});
+    		
+    		my $dbh = Bugzilla->dbh;
+    		my $id = $dbh->selectrow_array(qq{
+                SELECT L.id FROM componentleads AS L
+                LEFT JOIN componentleadsgroup AS G ON G.id = L.group_id
+                WHERE 
+                G.component_id = $object->{'id'} AND
+                 L.user_id = $oldowner->{'userid'}}, undef);
+                 
+            my $old_assignee = new Bugzilla::Extension::AssigneeList::Assignee($id);
+            my $group = new Bugzilla::Extension::AssigneeList::Group(
+            																			$old_assignee->group_id);
+			Bugzilla::Extension::AssigneeList::Assignee->create({
+                                      name => $newowner->login, 
+                                    sortkey => 0,
+                                         user => $newowner,
+                                       group => $group,
+                                 });
+			$old_assignee->remove_from_db;
+    	}
+    }
+}
+
+#########
 # Pages #
 #########
 
@@ -226,8 +280,8 @@ sub _page_assignees {
 
     if ($action eq 'update') {
 	    check_token_data($token, 'edit_assignee');
-	    
-	    my $group = new Bugzilla::Extension::AssigneeList::Group($cgi->param('group'));
+
+        my $group = new Bugzilla::Extension::AssigneeList::Group($cgi->param('group'));
 
         $assignee->set_name($cgi->param('name_new'));
         $assignee->set_group($group);
@@ -369,7 +423,10 @@ sub _assignees {
         my $ids = $dbh->selectcol_arrayref(q{
             SELECT L.id FROM componentleads AS L
             LEFT JOIN componentleadsgroup AS G ON G.id = L.group_id
-            WHERE G.component_id = ?
+            LEFT JOIN profiles AS P ON P.userid = L.user_id
+            WHERE
+            	G.component_id = ? AND
+            	P.disabledtext = ''
             ORDER BY L.group_id, L.sortkey}, undef, $self->id);
 
         require Bugzilla::Extension::AssigneeList::Assignee;

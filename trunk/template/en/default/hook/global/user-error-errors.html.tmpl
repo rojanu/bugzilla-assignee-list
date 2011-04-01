@@ -27,18 +27,34 @@
   # nobody can guarantee the hook files processing order in the future.
   #%]
 
-[% IF error == "label_too_long" %]
-    [% title = "Label Too Long" %]
-    The label <em>[% label FILTER html %]</em> must be less than 20 characters.
+[% IF error == "assignee_label_too_long" %]
+    [% title = "Assignee Label Too Long" %]
+    The Assignee label <em>[% label FILTER html %]</em> must be less than 
+    [% constants.MAX_LABEL_LENGTH FILTER html %] characters.
     Please go back and shorten the label.
 
-[% ELSIF error == "label_required" %]
-    [% title = "Label Required" %]
-    A label is needed, please go back and add a label.
+[% ELSIF error == "assignee_label_required" %]
+    [% title = "Assignee Label Required" %]
+    A label is needed for the assignee,<br> please go back and add a label.
 
-[% ELSIF error == "invalid_sortkey" %]
-    [% title = "Invalid Sortkey" %]
-    The sortkey [% sortkey FILTER html %] that you have provided
+[% ELSIF error == "assignee_sortkey_invalid" %]
+    [% title = "Assignee Sortkey Invalid" %]
+    The Assignee sortkey [% sortkey FILTER html %] that you have provided
+    is not a valid positive integer.
+
+[% ELSIF error == "assigneegroup_label_too_long" %]
+    [% title = "Assignee Group Label Too Long" %]
+    The Assignee Group label <em>[% label FILTER html %]</em> must be less than 
+    [% constants.MAX_LABEL_LENGTH FILTER html %] characters.
+    Please go back and shorten the label.
+
+[% ELSIF error == "assigneegroup_label_required" %]
+    [% title = "Assignee Group Label Required" %]
+    A label is needed for the assignee group,<br> please go back and add a label.
+
+[% ELSIF error == "assigneegroup_sortkey_invalid" %]
+    [% title = "Assignee Group Invalid Sortkey" %]
+    The Assignee Group sortkey [% sortkey FILTER html %] that you have provided
     is not a valid positive integer.
 
 [% ELSIF error == "assigneegroup_already_exists" %]

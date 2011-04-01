@@ -27,6 +27,6 @@ use base qw(Exporter);
 	MAX_LABEL_LENGTH
 );
 
-use constant MAX_LABEL_LENGTH => 20;
+use constant MAX_LABEL_LENGTH => 40;
 
 1;
