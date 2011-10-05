@@ -1,7 +1,7 @@
 === modified file 'template/en/default/bug/create/create.html.tmpl'
---- template/en/default/bug/create/create.html.tmpl	2011-02-01 16:00:46 +0000
-+++ template/en/default/bug/create/create.html.tmpl	2011-04-01 10:55:05 +0000
-@@ -40,7 +40,7 @@
+--- template/en/default/bug/create/create.html.tmpl	2011-08-16 00:47:18 +0000
++++ template/en/default/bug/create/create.html.tmpl	2011-10-05 15:16:19 +0000
+@@ -41,7 +41,7 @@
  
  <script type="text/javascript">
  <!--
@@ -10,7 +10,7 @@
  var initialowners = new Array([% product.components.size %]);
  var last_initialowner;
  var initialccs = new Array([% product.components.size %]);
-@@ -100,6 +100,7 @@
+@@ -102,6 +102,7 @@
      if (index != -1) {
          var owner = initialowners[index];
          var component = components[index];
@@ -18,7 +18,7 @@
          if (assigned_to == last_initialowner
              || assigned_to == owner
              || assigned_to == '') {
-@@ -393,7 +394,7 @@
+@@ -383,7 +384,7 @@
        field = bug_fields.assigned_to editable = 1
      %]
      <td colspan="2">
@@ -29,24 +29,14 @@
           value => assigned_to
 
 === modified file 'template/en/default/bug/edit.html.tmpl'
---- template/en/default/bug/edit.html.tmpl	2011-01-24 18:29:39 +0000
-+++ template/en/default/bug/edit.html.tmpl	2011-04-01 11:50:29 +0000
-@@ -32,7 +32,7 @@
+--- template/en/default/bug/edit.html.tmpl	2011-09-01 18:30:51 +0000
++++ template/en/default/bug/edit.html.tmpl	2011-10-05 15:18:35 +0000
+@@ -32,6 +32,7 @@
  
    <script type="text/javascript">
    <!--
--  
-+  [%+ INCLUDE "assigneelist/bugedit.js.tmpl" %]
-   /* Outputs a link to call replyToComment(); used to reduce HTML output */
-   function addReplyLink(id, real_id) {
-       /* XXX this should really be updated to use the DOM Core's
-@@ -473,7 +473,7 @@
-             </span>
-           </div>
-           <div id="bz_assignee_input">
--            [% INCLUDE global/userselect.html.tmpl
-+            [% INCLUDE assigneelist/userselect.html.tmpl
-                  id => "assigned_to"
-                  name => "assigned_to"
-                  value => bug.assigned_to.login
++[%+ INCLUDE "assigneelist/bugedit.js.tmpl" %]
+ [% IF user.is_timetracker %]
+   var fRemainingTime = [% bug.remaining_time %]; // holds the original value
+   function adjustRemainingTime() {
 
