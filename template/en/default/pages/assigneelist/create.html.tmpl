@@ -27,7 +27,8 @@
 [% END %]
 [% PROCESS global/header.html.tmpl
   title = title
-  javascript_urls = [ "extensions/AssigneeList/web/Util.js" ]
+  yui = [ 'autocomplete' ]
+  javascript_urls = [ "extensions/AssigneeList/web/Util.js", "js/field.js" ]
 %]
 
 <form method="post" action="page.cgi?id=assigneelist/list.html">
@@ -39,7 +40,7 @@
                 name     => "user_login"
                 id       => "user_login"
                 value    => ""
-                size     => 64
+                size     => 40
                 custom_userlist => product.user_list
                 multiple => 0
                 emptyok  => 0

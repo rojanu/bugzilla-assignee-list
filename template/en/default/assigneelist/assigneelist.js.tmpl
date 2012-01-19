@@ -27,12 +27,7 @@ var assigneeList = new Array([% components.size %]);
 	[%- FOREACH g = c.assignee_groups %]
 		[% js_group = 'G' _ c.id _ '' _ g.id %]
 		var [% js_group FILTER js %] = document.createElement("optgroup");
-		[% IF g.name == 'Default' %]
-    		//var selectAssignee = document.createElement("option");
-    		//selectAssignee.value = "";
-    		//selectAssignee.appendChild(document.createTextNode("Select Assignee"));
-			//[% js_group %].appendChild(selectAssignee);
-		[% ELSE %]
+		[% IF g.name != 'Default' %]
 			[% js_group FILTER js %].label = "[% g.name FILTER js %]";
 		[% END %]
 
@@ -51,6 +46,7 @@ var assigneeList = new Array([% components.size %]);
     [% c_count = c_count + 1 %]
 [%- END %]
 
+
 function populateAssignees(index) {
 	var assigneeMenu = document.getElementById("assigned_to");
 
@@ -58,6 +54,11 @@ function populateAssignees(index) {
 		assigneeMenu.removeChild(assigneeMenu.firstChild);
 	}
 
+    //var selectAssignee = document.createElement("option");
+	//selectAssignee.value = "";
+    //selectAssignee.appendChild(document.createTextNode("Select Assignee"));
+    //assigneeMenu.appendChild(selectAssignee);
+    		
 	for ( i=0; i<assigneeList[index].length; i++ ){
 		if (assigneeList[index][i].hasChildNodes()) {
 			assigneeMenu.appendChild(assigneeList[index][i]);

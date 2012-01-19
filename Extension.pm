@@ -4,7 +4,8 @@
 # License Version 1.1 (the "License"); you may not use this file
 # except in compliance with the License. You may obtain a copy of
 # the License at http://www.mozilla.org/MPL/
-#
+#sub install_update_db {
+    my $dbh = Bugzilla->dbh;
 # Software distributed under the License is distributed on an "AS
 # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
 # implied. See the License for the specific language governing
@@ -52,13 +53,13 @@ sub db_schema_abstract_schema {
 
     $args->{'schema'}->{'componentleadsgroup'} = {
         FIELDS => [
-        	id                      => {TYPE => 'MEDIUMSERIAL', NOTNULL => 1, PRIMARYKEY => 1},
+        	id            => {TYPE => 'MEDIUMSERIAL', NOTNULL => 1, PRIMARYKEY => 1},
             component_id  => {TYPE => 'INT2', NOTNULL => 1,
-                                             REFERENCES => {TABLE  => 'components',
-                                                                           COLUMN => 'id',
-                                                                           DELETE => 'CASCADE'}},
+                              REFERENCES => {TABLE  => 'components',
+                                             COLUMN => 'id',
+                                             DELETE => 'CASCADE'}},
             name         => {TYPE => 'varchar(64)', NOTNULL => 1},
-            sortkey       => {TYPE => 'INT2', NOTNULL => 1, DEFAULT => 0},
+            sortkey      => {TYPE => 'INT2', NOTNULL => 1, DEFAULT => 0},
         ],
         INDEXES => [
         	componentleadsgroup_name_component_id_idx => 
@@ -69,17 +70,17 @@ sub db_schema_abstract_schema {
 
     $args->{'schema'}->{'componentleads'} = {
         FIELDS => [
-            id			            => {TYPE => 'MEDIUMSERIAL', NOTNULL => 1, PRIMARYKEY => 1},
-            user_id            => {TYPE  => 'INT3', NOTNULL => 1,
-                                            REFERENCES => {TABLE  => 'profiles',
-                                                                          COLUMN => 'userid',
-                                                                          DELETE => 'CASCADE'}},
-            group_id           => {TYPE => 'INT3', NOTNULL => 1,
-                                             REFERENCES => {TABLE  => 'componentleadsgroup',
-                                                                           COLUMN => 'id',
-                                                                           DELETE => 'CASCADE'}},
-            name                  => {TYPE => 'varchar(64)', NOTNULL => 1},
-            sortkey              => {TYPE => 'INT2', NOTNULL => 1, DEFAULT => 0},
+            id          => {TYPE => 'MEDIUMSERIAL', NOTNULL => 1, PRIMARYKEY => 1},
+            user_id     => {TYPE  => 'INT3', NOTNULL => 1,
+                            REFERENCES => {TABLE  => 'profiles',
+                                           COLUMN => 'userid',
+                                           DELETE => 'CASCADE'}},
+            group_id   => {TYPE => 'INT3', NOTNULL => 1,
+                           REFERENCES => {TABLE  => 'componentleadsgroup',
+                                          COLUMN => 'id',
+                                          DELETE => 'CASCADE'}},
+            name       => {TYPE => 'varchar(64)', NOTNULL => 1},
+            sortkey    => {TYPE => 'INT2', NOTNULL => 1, DEFAULT => 0},
         ],
         INDEXES => [
             componentleads_id_idx => 
@@ -90,9 +91,34 @@ sub db_schema_abstract_schema {
     };
 }
 
-#########
+sub install_update_db {
+    my $dbh = Bugzilla->dbh;
+    my @components = Bugzilla::Component->get_all;
+
+    foreach my $component (@components) {
+        my ($group_id) = $dbh->selectrow_array(
+            "SELECT id FROM componentleadsgroup WHERE component_id=?", undef,
+                $component->id);
+         
+             if(!$group_id) {
+                print "Adding components initial owner to assignee list";
+                my $group = Bugzilla::Extension::AssigneeList::Group->create(
+        							{name => 'Default',component => $component});
+
+          		my $owner = new Bugzilla::User($component->{'initialowner'});
+    		    Bugzilla::Extension::AssigneeList::Assignee->create({
+                                        name => $owner->name ? $owner->name : $owner->login, 
+                                        sortkey => 0,
+                                        user => $owner,
+                                        group => $group,
+                                     });
+         }
+    }
+}
+
+###########
 # Objects #
-#########
+###########
 
 sub object_end_of_create {
     my ($self, $args) = @_;
@@ -104,10 +130,10 @@ sub object_end_of_create {
 
   		my $owner = new Bugzilla::User($object->{'initialowner'});
 		Bugzilla::Extension::AssigneeList::Assignee->create({
-                                      name => $owner->login, 
+                                    name => $owner->name ? $owner->name : $owner->login, 
                                     sortkey => 0,
-                                         user => $owner,
-                                       group => $group,
+                                    user => $owner,
+                                    group => $group,
                                  });
     }
 }
@@ -132,12 +158,12 @@ sub object_before_set {
                  
             my $old_assignee = new Bugzilla::Extension::AssigneeList::Assignee($id);
             my $group = new Bugzilla::Extension::AssigneeList::Group(
-            																			$old_assignee->group_id);
+														$old_assignee->group_id);
 			Bugzilla::Extension::AssigneeList::Assignee->create({
-                                      name => $newowner->login, 
+                                    name => $newowner->name ? $newowner->name : $newowner->login,
                                     sortkey => 0,
-                                         user => $newowner,
-                                       group => $group,
+                                    user => $newowner,
+                                    group => $group,
                                  });
 			$old_assignee->remove_from_db;
     	}
@@ -259,10 +285,10 @@ sub _page_assignees {
 	    my $user = new Bugzilla::User({name => $cgi->param('user_login')});
 
         my $assignee = Bugzilla::Extension::AssigneeList::Assignee->create({
-                                      name => $cgi->param('name'), 
+                                    name => $cgi->param('name'), 
                                     sortkey => $cgi->param('sortkey'),
-                                         user => $user,
-                                       group => $group,
+                                    user => $user,
+                                    group => $group,
                                  });
     
         $vars->{'message'} = 'assignee_created';
