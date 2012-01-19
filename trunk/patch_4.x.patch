@@ -1,6 +1,6 @@
 === modified file 'template/en/default/bug/create/create.html.tmpl'
---- template/en/default/bug/create/create.html.tmpl	2011-08-16 00:47:18 +0000
-+++ template/en/default/bug/create/create.html.tmpl	2011-10-05 15:16:19 +0000
+--- template/en/default/bug/create/create.html.tmpl	2012-01-11 20:13:42 +0000
++++ template/en/default/bug/create/create.html.tmpl	2012-01-19 14:45:20 +0000
 @@ -41,7 +41,7 @@
  
  <script type="text/javascript">
@@ -29,14 +29,24 @@
           value => assigned_to
 
 === modified file 'template/en/default/bug/edit.html.tmpl'
---- template/en/default/bug/edit.html.tmpl	2011-09-01 18:30:51 +0000
-+++ template/en/default/bug/edit.html.tmpl	2011-10-05 15:18:35 +0000
-@@ -32,6 +32,7 @@
+--- template/en/default/bug/edit.html.tmpl	2011-12-05 18:58:12 +0000
++++ template/en/default/bug/edit.html.tmpl	2012-01-19 11:41:15 +0000
+@@ -32,7 +32,7 @@
  
    <script type="text/javascript">
    <!--
-+[%+ INCLUDE "assigneelist/bugedit.js.tmpl" %]
- [% IF user.is_timetracker %]
-   var fRemainingTime = [% bug.remaining_time %]; // holds the original value
-   function adjustRemainingTime() {
+-  
++  [%+ INCLUDE "assigneelist/bugedit.js.tmpl" %]
+   /* Outputs a link to call replyToComment(); used to reduce HTML output */
+   function addReplyLink(id, real_id) {
+       /* XXX this should really be updated to use the DOM Core's
+@@ -473,7 +473,7 @@
+             </span>
+           </div>
+           <div id="bz_assignee_input">
+-            [% INCLUDE global/userselect.html.tmpl
++            [% INCLUDE assigneelist/userselect.html.tmpl
+                  id => "assigned_to"
+                  name => "assigned_to"
+                  value => bug.assigned_to.login
 
