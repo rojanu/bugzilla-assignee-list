@@ -101,7 +101,7 @@ sub install_update_db {
                 $component->id);
          
              if(!$group_id) {
-                print "Adding components initial owner to assignee list";
+                # print "Adding components initial owner to assignee list\n";
                 my $group = Bugzilla::Extension::AssigneeList::Group->create(
         							{name => 'Default',component => $component});
 
